@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Client{
+  id Int @id @default(autoincrement())
+  nom String
+
+  bien Bien[]
+}
+
+
+model Address{
+  id Int @id @default(autoincrement())
+  arrondissement String
+  lieuDit String
+  commune String
+  itineraire String
+
+  bien Bien?
+}
+
+model Estimation{
+  id Int @id @default(autoincrement())
+  valeurParM2 BigInt
+  nombreDeM2 BigInt
+  valeurParcelle BigInt 
+  ValeurVenalBati BigInt?
+  valeurVenalImmeuble BigInt?
+
+  bien Bien?
+}
+
+model Template{
+  id Int @id @default(autoincrement())
+  composition Json
+  signature String @unique
+
+  rapport Rapport? 
+
+}
+model Bien{
+  id Int @id @default(autoincrement())
+  designation String @unique
+  dateVisite DateTime
+  nature String
+
+  rapport Rapport?
+
+  addressId Int @unique
+  address Address @relation(fields: [addressId],references: [id])
+
+  estimationId Int @unique
+  estimation Estimation @relation(fields: [estimationId],references: [id])
+
+  clientId Int 
+  client Client @relation(fields: [clientId],references: [id])
+}
+
+model Token{
+      id Int @id @default(autoincrement())
+      code String
+      expireAt DateTime
+      used Boolean @default(false)
+      key String @unique
+      @@map("token")
+       userId Int
+       user User @relation(fields: [userId],references: [id])
+}
+
+model Blocked{
+    id Int @id @default(autoincrement())
+    deblockAt DateTime
+    asBlocked Boolean @default(true)
+
+     userId Int
+     user User @relation(fields: [userId],references: [id])
+}
+
+model User{
+  id Int @id @default(autoincrement())
+  nom String 
+  prenom String
+  email String @unique
+  password String 
+  role String @default("USER")
+  status String @default("PENDING")
+
+  rapport Rapport[]
+  token Token[]
+  blocked Blocked[]
+}
+model Rapport{
+  id Int @id @default(autoincrement())
+  dateCreation DateTime
+
+  bienId Int @unique
+  bien Bien @relation(fields: [bienId], references: [id])  
+
+  templateId Int @unique
+  template Template @relation(fields: [templateId],references: [id])
+
+  userId Int @unique
+  user User @relation(fields: [userId],references: [id])
+}
+
